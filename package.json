@@ -28,7 +28,8 @@
     "mysql2": "^3.6.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "webpack": "^5.88.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
