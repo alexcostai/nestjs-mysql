@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Param,
   ParseIntPipe,
   Patch,
@@ -11,7 +12,9 @@ import {
 import { User } from './user.entity';
 import { UsersService } from './users.service';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
-import { UpdateUserDto } from 'src/dto/update-user.dto';
+import { UpdateUserDTO } from 'src/dto/update-user.dto';
+import { DeleteResult } from 'typeorm';
+import { CreateProfileDTO } from 'src/dto/create-profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -23,25 +26,37 @@ export class UsersController {
   }
 
   @Get(':id')
-  getUserById(@Param('id', ParseIntPipe) id: number): Promise<User> {
+  getUserById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<User | HttpException> {
     return this.usersService.getUserById(id);
   }
 
   @Post()
-  createUser(@Body() newUser: CreateUserDTO): Promise<User> {
+  createUser(@Body() newUser: CreateUserDTO): Promise<User | HttpException> {
     return this.usersService.createUser(newUser);
   }
 
   @Delete(':id')
-  deleteUSer(@Param('id', ParseIntPipe) id: number) {
+  deleteUser(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<DeleteResult | HttpException> {
     return this.usersService.deleteUser(id);
   }
 
   @Patch(':id')
   updateUSer(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updatedUser: UpdateUserDto,
-  ) {
+    @Body() updatedUser: UpdateUserDTO,
+  ): Promise<User | HttpException> {
     return this.usersService.updateUser(id, updatedUser);
+  }
+
+  @Post(':id/profile')
+  createProfile(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() profile: CreateProfileDTO,
+  ) {
+    return this.usersService.createProfile(id, profile);
   }
 }
