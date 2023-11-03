@@ -17,7 +17,7 @@ import { PostsModule } from './posts/posts.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: false,
     }),
     UsersModule,
     PostsModule,

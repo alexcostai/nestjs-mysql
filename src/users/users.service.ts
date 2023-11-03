@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, FindOptionsRelations, Repository } from 'typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from './user.entity';
 import { Profile } from './profile.entity';
@@ -71,8 +71,14 @@ export class UsersService {
   // Este método es diferente al getUsersById
   // Trae el usuario sin relaciones para que tarde menos la consulta
   // ya que solo se usa para validar si existe
-  async findUserById(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+  async findUserById(
+    id: number,
+    relations?: FindOptionsRelations<User>,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations,
+    });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }

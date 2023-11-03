@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Profile } from './profile.entity';
 import { Post } from 'src/posts/post.entity';
+import { Like } from 'src/posts/like.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -32,4 +33,7 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
+
+  @OneToMany(() => Like, (like) => like.user)
+  likes: Like[];
 }

@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   ParseIntPipe,
   Patch,
@@ -36,9 +35,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  deleteUser(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<DeleteResult | HttpException> {
+  deleteUser(@Param('id', ParseIntPipe) id: number): Promise<DeleteResult> {
     return this.usersService.deleteUser(id);
   }
 
@@ -46,7 +43,7 @@ export class UsersController {
   updateUSer(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatedUser: UpdateUserDTO,
-  ): Promise<User | HttpException> {
+  ): Promise<User> {
     return this.usersService.updateUser(id, updatedUser);
   }
 
@@ -54,7 +51,7 @@ export class UsersController {
   createProfile(
     @Param('id', ParseIntPipe) id: number,
     @Body() profile: CreateProfileDTO,
-  ) {
+  ): Promise<User> {
     return this.usersService.createProfile(id, profile);
   }
 }
