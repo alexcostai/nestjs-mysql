@@ -3,11 +3,10 @@ import { FindOptionsRelations, Repository } from 'typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Post } from './post.entity';
 import { Like } from './like.entity';
-import { User } from 'src/users/user.entity';
-import { LikePost } from 'src/dto/like-post.dto';
-import { UsersService } from 'src/users/users.service';
-import { CreatePostDTO } from 'src/dto/create-post.dto';
-import { log } from 'console';
+import { Comment } from './comment.entity';
+import { User } from 'src/modules/users/user.entity';
+import { CommentPost, CreatePostDTO, LikePost } from './dtos';
+import { UsersService } from 'src/modules/users/users.service';
 
 @Injectable()
 export class PostsService {
@@ -16,6 +15,7 @@ export class PostsService {
     @InjectRepository(Post) private postRepository: Repository<Post>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Like) private likeRepository: Repository<Like>,
+    @InjectRepository(Comment) private commentRepository: Repository<Comment>,
   ) {}
 
   async createPost(post: CreatePostDTO): Promise<Post> {
@@ -46,7 +46,7 @@ export class PostsService {
     return post;
   }
 
-  async likePost({ id, userId }: LikePost) {
+  async likePost({ id, userId }: LikePost): Promise<Post> {
     const post = await this.findPostById(id, { likes: true });
     const user = await this.usersService.findUserById(userId, { likes: true });
     const hasLike = await this.likeRepository.findOne({
@@ -67,5 +67,22 @@ export class PostsService {
     this.userRepository.save(user);
     this.postRepository.save(post);
     return post;
+  }
+
+  async createCommentPost({
+    id,
+    userId,
+    content,
+  }: CommentPost): Promise<Comment> {
+    const post = await this.findPostById(id, { comments: true });
+    const user = await this.usersService.findUserById(userId, {
+      comments: true,
+    });
+    const newComment = this.commentRepository.create({ user, post, content });
+    post.comments.push(newComment);
+    user.comments.push(newComment);
+    this.postRepository.save(post);
+    this.userRepository.save(user);
+    return this.commentRepository.save(newComment);
   }
 }

@@ -7,13 +7,20 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
-import { User } from './user.entity';
 import { DeleteResult } from 'typeorm';
+import {
+  CreateProfileDTO,
+  CreateUserDTO,
+  LoginPayloadDTO,
+  LoginUserDTO,
+  UpdateUserDTO,
+} from './dtos';
+import { User } from './user.entity';
 import { UsersService } from './users.service';
-import { CreateUserDTO } from 'src/dto/create-user.dto';
-import { UpdateUserDTO } from 'src/dto/update-user.dto';
-import { CreateProfileDTO } from 'src/dto/create-profile.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -31,7 +38,7 @@ export class UsersController {
 
   @Post()
   createUser(@Body() newUser: CreateUserDTO): Promise<User> {
-    return this.usersService.createUser(newUser);
+    return this.usersService.registerUser(newUser);
   }
 
   @Delete(':id')
@@ -47,11 +54,15 @@ export class UsersController {
     return this.usersService.updateUser(id, updatedUser);
   }
 
-  @Post(':id/profile')
-  createProfile(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() profile: CreateProfileDTO,
-  ): Promise<User> {
-    return this.usersService.createProfile(id, profile);
+  @UseGuards(AuthGuard)
+  @Post('/profile')
+  createProfile(@Request() req): Promise<User> {
+    const profile: CreateProfileDTO = req.body;
+    return this.usersService.createProfile(req.user.sub, profile);
+  }
+
+  @Post('/login')
+  loginUser(@Body() loginValues: LoginUserDTO): Promise<LoginPayloadDTO> {
+    return this.usersService.loginUser(loginValues);
   }
 }

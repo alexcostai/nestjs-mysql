@@ -6,12 +6,10 @@ import {
   ParseIntPipe,
   Post,
 } from '@nestjs/common';
+import { Comment } from './comment.entity';
 import { PostsService } from './posts.service';
 import { Post as PostEntity } from './post.entity';
-import { CreatePostDTO } from 'src/dto/create-post.dto';
-import { LikePost } from 'src/dto/like-post.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { CommentPost, CreatePostDTO, LikePost } from './dtos';
 
 @Controller('posts')
 export class PostsController {
@@ -33,7 +31,12 @@ export class PostsController {
   }
 
   @Post(':id/:userId')
-  async likePost(@Param() params: LikePost) {
+  async likePost(@Param() params: LikePost): Promise<PostEntity> {
     return this.postService.likePost(params);
+  }
+
+  @Post('/comment')
+  async createCommentPost(@Param() params: CommentPost): Promise<Comment> {
+    return this.postService.createCommentPost(params);
   }
 }

@@ -1,6 +1,6 @@
 import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Post } from './post.entity';
-import { User } from 'src/users/user.entity';
+import { User } from 'src/modules/users/user.entity';
 
 @Entity('post_like')
 export class Like {

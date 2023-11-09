@@ -3,8 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
-import { UsersModule } from './users/users.module';
-import { PostsModule } from './posts/posts.module';
+import { UsersModule } from './modules/users/users.module';
+import { PostsModule } from './modules/posts/posts.module';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { PostsModule } from './posts/posts.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
     }),
     UsersModule,
     PostsModule,

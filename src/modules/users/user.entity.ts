@@ -7,8 +7,9 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Profile } from './profile.entity';
-import { Post } from 'src/posts/post.entity';
-import { Like } from 'src/posts/like.entity';
+import { Post } from 'src/modules/posts/post.entity';
+import { Like } from 'src/modules/posts/like.entity';
+import { Comment } from 'src/modules/posts/comment.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -16,7 +17,7 @@ export class User {
   id: number;
 
   @Column({ unique: true })
-  username: string;
+  email: string;
 
   @Column()
   password: string;
@@ -36,4 +37,7 @@ export class User {
 
   @OneToMany(() => Like, (like) => like.user)
   likes: Like[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 }

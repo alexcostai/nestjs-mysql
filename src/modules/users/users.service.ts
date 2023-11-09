@@ -1,27 +1,49 @@
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, FindOptionsRelations, Repository } from 'typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { DeleteResult, FindOptionsRelations, Repository } from 'typeorm';
+import {
+  CreateProfileDTO,
+  CreateUserDTO,
+  LoginPayloadDTO,
+  LoginUserDTO,
+  UpdateUserDTO,
+} from './dtos';
 import { User } from './user.entity';
 import { Profile } from './profile.entity';
-import { CreateUserDTO } from 'src/dto/create-user.dto';
-import { UpdateUserDTO } from 'src/dto/update-user.dto';
-import { CreateProfileDTO } from 'src/dto/create-profile.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Profile) private profileRepository: Repository<Profile>,
+    private jwtService: JwtService,
   ) {}
 
-  async createUser(user: CreateUserDTO): Promise<User> {
+  async loginUser(loginValues: LoginUserDTO): Promise<LoginPayloadDTO> {
     const userFound = await this.userRepository.findOne({
       where: {
-        username: user.username,
+        email: loginValues.email,
+      },
+    });
+    if (userFound.password != loginValues.password) {
+      throw new HttpException('Failed to login', HttpStatus.CONFLICT);
+    }
+    const payload = { sub: userFound.id, email: userFound.email };
+    return {
+      user: userFound,
+      token: await this.jwtService.signAsync(payload),
+    };
+  }
+
+  async registerUser(user: CreateUserDTO): Promise<User> {
+    const userFound = await this.userRepository.findOne({
+      where: {
+        email: user.email,
       },
     });
     if (userFound) {
-      throw new HttpException('User already exists', HttpStatus.CONFLICT);
+      throw new HttpException('Error registering user', HttpStatus.CONFLICT);
     }
     const newUser = this.userRepository.create(user);
     return this.userRepository.save(newUser);
@@ -32,16 +54,7 @@ export class UsersService {
   }
 
   async getUserById(id: number): Promise<User> {
-    const userFound = await this.userRepository.findOne({
-      where: {
-        id,
-      },
-      relations: ['profile', 'posts'],
-    });
-    if (!userFound) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-    return userFound;
+    return this.findUserById(id, { profile: true, posts: true });
   }
 
   async deleteUser(id: number): Promise<DeleteResult> {
