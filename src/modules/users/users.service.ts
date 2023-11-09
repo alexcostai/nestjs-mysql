@@ -5,9 +5,9 @@ import { DeleteResult, FindOptionsRelations, Repository } from 'typeorm';
 import {
   CreateProfileDTO,
   CreateUserDTO,
-  LoginPayloadDTO,
   LoginUserDTO,
   UpdateUserDTO,
+  UserPayloadDTO,
 } from './dtos';
 import { User } from './user.entity';
 import { Profile } from './profile.entity';
@@ -20,7 +20,7 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
-  async loginUser(loginValues: LoginUserDTO): Promise<LoginPayloadDTO> {
+  async loginUser(loginValues: LoginUserDTO): Promise<UserPayloadDTO> {
     const userFound = await this.userRepository.findOne({
       where: {
         email: loginValues.email,
@@ -29,14 +29,13 @@ export class UsersService {
     if (userFound.password != loginValues.password) {
       throw new HttpException('Failed to login', HttpStatus.CONFLICT);
     }
-    const payload = { sub: userFound.id, email: userFound.email };
     return {
       user: userFound,
-      token: await this.jwtService.signAsync(payload),
+      token: await this.generateUserToken(userFound),
     };
   }
 
-  async registerUser(user: CreateUserDTO): Promise<User> {
+  async registerUser(user: CreateUserDTO): Promise<UserPayloadDTO> {
     const userFound = await this.userRepository.findOne({
       where: {
         email: user.email,
@@ -46,7 +45,11 @@ export class UsersService {
       throw new HttpException('Error registering user', HttpStatus.CONFLICT);
     }
     const newUser = this.userRepository.create(user);
-    return this.userRepository.save(newUser);
+    await this.userRepository.save(newUser);
+    return {
+      user: newUser,
+      token: await this.generateUserToken(newUser),
+    };
   }
 
   getAllUsers(): Promise<User[]> {
@@ -96,5 +99,10 @@ export class UsersService {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     return user;
+  }
+
+  private generateUserToken({ id, email }: User): Promise<string> {
+    const payload = { sub: id, email: email };
+    return this.jwtService.signAsync(payload);
   }
 }

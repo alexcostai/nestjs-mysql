@@ -1,6 +1,6 @@
 import { User } from 'src/modules/users/user.entity';
 
-export class LoginPayloadDTO {
+export class UserPayloadDTO {
   user: User;
   token: string;
 }
