@@ -25,9 +25,6 @@ export class User {
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ nullable: true })
-  authStrategy: string;
-
   @OneToOne(() => Profile)
   @JoinColumn()
   profile: Profile;

@@ -18,14 +18,19 @@ export class PostsService {
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
   ) {}
 
-  async createPost(post: CreatePostDTO): Promise<Post> {
-    await this.usersService.findUserById(post.authorId);
+  async createPost(userId: number, post: CreatePostDTO): Promise<Post> {
+    const userFound = await this.usersService.findUserById(userId);
     const newPost = this.postRepository.create(post);
+    userFound.posts.push(newPost);
+    await this.userRepository.save(userFound);
     return this.postRepository.save(newPost);
   }
 
-  getPosts(): Promise<Post[]> {
-    return this.postRepository.find({ relations: ['author', 'likes'] });
+  async getPosts(userId: number): Promise<Post[]> {
+    const userFound = await this.usersService.findUserById(userId, {
+      posts: true,
+    });
+    return userFound.posts;
   }
 
   async getPostById(id: number): Promise<Post> {
@@ -69,12 +74,11 @@ export class PostsService {
     return post;
   }
 
-  async createCommentPost({
-    id,
-    userId,
-    content,
-  }: CommentPost): Promise<Comment> {
-    const post = await this.findPostById(id, { comments: true });
+  async createCommentPost(
+    userId: number,
+    { postId, content }: CommentPost,
+  ): Promise<Comment> {
+    const post = await this.findPostById(postId, { comments: true });
     const user = await this.usersService.findUserById(userId, {
       comments: true,
     });

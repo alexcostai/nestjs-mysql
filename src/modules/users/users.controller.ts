@@ -1,21 +1,12 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-} from '@nestjs/common';
 import { DeleteResult } from 'typeorm';
+import { Body, Controller, Delete, Patch, Post, Get } from '@nestjs/common';
 import {
-  CreateProfileDTO,
   CreateUserDTO,
   LoginUserDTO,
   UpdateUserDTO,
   UserPayloadDTO,
   AuthUserDTO,
+  UpdateProfileDTO,
 } from './dtos';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
@@ -25,45 +16,41 @@ import { AuthUser, PublicRoute } from 'src/decorators';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Get()
-  getAllUsers(): Promise<User[]> {
-    return this.usersService.getAllUsers();
+  @PublicRoute()
+  @Post('/login')
+  loginUser(@Body() loginValues: LoginUserDTO): Promise<UserPayloadDTO> {
+    return this.usersService.loginUser(loginValues);
   }
 
-  @Get(':id')
-  getUserById(@Param('id', ParseIntPipe) id: number): Promise<User> {
-    return this.usersService.getUserById(id);
-  }
-
+  @PublicRoute()
   @Post()
   registerUser(@Body() newUser: CreateUserDTO): Promise<UserPayloadDTO> {
     return this.usersService.registerUser(newUser);
   }
 
-  @Delete(':id')
-  deleteUser(@Param('id', ParseIntPipe) id: number): Promise<DeleteResult> {
-    return this.usersService.deleteUser(id);
+  @Get()
+  getUser(@AuthUser() user: AuthUserDTO): Promise<User> {
+    return this.usersService.getUser(user.sub);
   }
 
-  @Patch(':id')
+  @Delete()
+  deleteUser(@AuthUser() user: AuthUserDTO): Promise<DeleteResult> {
+    return this.usersService.deleteUser(user.sub);
+  }
+
+  @Patch()
   updateUser(
-    @Param('id', ParseIntPipe) id: number,
     @Body() updatedUser: UpdateUserDTO,
+    @AuthUser() user: AuthUserDTO,
   ): Promise<User> {
-    return this.usersService.updateUser(id, updatedUser);
+    return this.usersService.updateUser(user.sub, updatedUser);
   }
 
   @Post('/profile')
-  createProfile(
-    @Body() profile: CreateProfileDTO,
+  updateProfile(
+    @Body() profile: UpdateProfileDTO,
     @AuthUser() user: AuthUserDTO,
   ) {
-    return this.usersService.createProfile(user.sub, profile);
-  }
-
-  @PublicRoute()
-  @Post('/login')
-  loginUser(@Body() loginValues: LoginUserDTO): Promise<UserPayloadDTO> {
-    return this.usersService.loginUser(loginValues);
+    return this.usersService.updateProfile(user.sub, profile);
   }
 }

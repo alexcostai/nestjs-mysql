@@ -6,23 +6,28 @@ import {
   ParseIntPipe,
   Post,
 } from '@nestjs/common';
+import { AuthUser } from 'src/decorators';
 import { Comment } from './comment.entity';
+import { AuthUserDTO } from '../users/dtos';
 import { PostsService } from './posts.service';
 import { Post as PostEntity } from './post.entity';
-import { CommentPost, CreatePostDTO, LikePost } from './dtos';
+import { CommentPost, CreatePostDTO } from './dtos';
 
 @Controller('posts')
 export class PostsController {
   constructor(private postService: PostsService) {}
 
   @Post()
-  createPost(@Body() post: CreatePostDTO): Promise<PostEntity> {
-    return this.postService.createPost(post);
+  createPost(
+    @AuthUser() user: AuthUserDTO,
+    @Body() post: CreatePostDTO,
+  ): Promise<PostEntity> {
+    return this.postService.createPost(user.sub, post);
   }
 
   @Get()
-  getPosts(): Promise<PostEntity[]> {
-    return this.postService.getPosts();
+  getPosts(@AuthUser() user: AuthUserDTO): Promise<PostEntity[]> {
+    return this.postService.getPosts(user.sub);
   }
 
   @Get(':id')
@@ -30,13 +35,19 @@ export class PostsController {
     return this.postService.getPostById(id);
   }
 
-  @Post(':id/:userId')
-  async likePost(@Param() params: LikePost): Promise<PostEntity> {
-    return this.postService.likePost(params);
+  @Post(':id/')
+  async likePost(
+    @Param('id', ParseIntPipe) id: number,
+    @AuthUser() user: AuthUserDTO,
+  ): Promise<PostEntity> {
+    return this.postService.likePost({ id, userId: user.sub });
   }
 
   @Post('/comment')
-  async createCommentPost(@Param() params: CommentPost): Promise<Comment> {
-    return this.postService.createCommentPost(params);
+  async createCommentPost(
+    @Body() comment: CommentPost,
+    @AuthUser() user: AuthUserDTO,
+  ): Promise<Comment> {
+    return this.postService.createCommentPost(user.sub, comment);
   }
 }

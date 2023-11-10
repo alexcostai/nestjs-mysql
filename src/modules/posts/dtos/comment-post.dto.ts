@@ -1,5 +1,4 @@
 export class CommentPost {
-  id: number;
-  userId: number;
+  postId: number;
   content: string;
 }

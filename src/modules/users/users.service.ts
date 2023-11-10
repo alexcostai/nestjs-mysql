@@ -3,11 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DeleteResult, FindOptionsRelations, Repository } from 'typeorm';
 import {
-  CreateProfileDTO,
   CreateUserDTO,
   LoginUserDTO,
   UpdateUserDTO,
   UserPayloadDTO,
+  UpdateProfileDTO,
 } from './dtos';
 import { User } from './user.entity';
 import { Profile } from './profile.entity';
@@ -52,12 +52,8 @@ export class UsersService {
     };
   }
 
-  getAllUsers(): Promise<User[]> {
-    return this.userRepository.find();
-  }
-
-  async getUserById(id: number): Promise<User> {
-    return this.findUserById(id, { profile: true, posts: true });
+  async getUser(id: number): Promise<User> {
+    return this.findUserById(id, { profile: true });
   }
 
   async deleteUser(id: number): Promise<DeleteResult> {
@@ -76,10 +72,13 @@ export class UsersService {
     return this.userRepository.save(updateUser);
   }
 
-  async createProfile(id: number, profile: CreateProfileDTO): Promise<User> {
-    const userFound = await this.findUserById(id);
-    const newProfile = this.profileRepository.create(profile);
-    const savedProfile = await this.profileRepository.save(newProfile);
+  async updateProfile(
+    userId: number,
+    profile: UpdateProfileDTO,
+  ): Promise<User> {
+    const userFound = await this.findUserById(userId, { profile: true });
+    const updatedProfile = Object.assign(userFound.profile, profile);
+    const savedProfile = await this.profileRepository.save(updatedProfile);
     userFound.profile = savedProfile;
     return this.userRepository.save(userFound);
   }
